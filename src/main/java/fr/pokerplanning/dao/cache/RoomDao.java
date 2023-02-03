@@ -2,7 +2,8 @@ package fr.pokerplanning.dao.cache;
 
 import fr.pokerplanning.dao.cache.dto.Room;
 
-public interface CacheDao {
-    Room get(Room room);
+public interface RoomDao {
+    Room get(String roomId);
 
+    Room put(Room room);
 }

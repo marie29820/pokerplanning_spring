@@ -2,10 +2,9 @@
 <Configuration status="WARN" monitorInterval="30">
 
   <Appenders>
-
     <RollingRandomAccessFile
-            name="MainLog" fileName="./logs/pokerplanning.log"
-            filePattern="./logs/pokerplanning.%d{yyyy-MM-dd}.log.gz">
+            name="MainLog" fileName="/opt/apache-tomcat-10.0.27/logs/pokerplanning.log"
+            filePattern="/opt/apache-tomcat-10.0.27/logs/pokerplanning.%d{yyyy-MM-dd}.log.gz">
       <PatternLayout>
         <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
         </Pattern>
@@ -18,6 +17,20 @@
       <DefaultRolloverStrategy max="2"/>
     </RollingRandomAccessFile>
 
+    <RollingRandomAccessFile
+            name="Socket" fileName="/opt/apache-tomcat-10.0.27/logs/socket.log"
+            filePattern="/opt/apache-tomcat-10.0.27/logs/socket.%d{yyyy-MM-dd}.log.gz">
+      <PatternLayout>
+        <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
+        </Pattern>
+      </PatternLayout>
+      <Policies>
+        <!-- tous les jours (voir filePattern) -->
+        <TimeBasedTriggeringPolicy/>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="2"/>
+    </RollingRandomAccessFile>
 
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout
@@ -27,16 +40,20 @@
   </Appenders>
 
   <Loggers>
+    <Logger name="org.springframework.messaging" additivity="false" level="trace">
+      <AppenderRef ref="Console"/>
+    </Logger>
 
-    <Logger name="fr.pokerplanning" additivity="false"
-            level="debug">
-      <AppenderRef ref="MainLog"/>
+    <Logger name="org.springframework.web.socket" additivity="false" level="trace">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <Logger name="fr.pokerplanning" additivity="false" level="info">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <Root level="info">
       <AppenderRef ref="Console"/>
     </Root>
-
   </Loggers>
 </Configuration>

@@ -1,11 +1,10 @@
 package fr.pokerplanning.service;
 
-import com.google.gson.Gson;
-import fr.pokerplanning.dao.cache.CacheDao;
+import fr.pokerplanning.dao.cache.PersonDao;
+import fr.pokerplanning.dao.cache.RoomDao;
 import fr.pokerplanning.dao.cache.dto.Player;
 import fr.pokerplanning.dao.cache.dto.Room;
 import fr.pokerplanning.dao.cache.dto.Step;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,57 +14,48 @@ import java.util.stream.Collectors;
 
 @Service
 public class RoomService {
-    private CacheDao cacheDao;
+    private final RoomDao roomDao;
 
-    private Gson gson;
+    private  final PersonDao personDao;
+
 
     @Autowired
-    public RoomService(CacheDao cacheDao, Gson gson) {
-        this.cacheDao = cacheDao;
-        this.gson = gson;
+    public RoomService(RoomDao roomDao, PersonDao personDao) {
+        this.roomDao = roomDao;
+        this.personDao = personDao;
     }
 
     public Room getRoom(String roomId) {
-        return cacheDao.get(new Room()
-                .setId(roomId)
-        );
+        return roomDao.get(roomId);
     }
 
     public Room resetRoom(String roomId) {
-        var room = getRoom(roomId)
-                .setStep(Step.HIDDEN);
-        room.getPlayers().forEach(
-                player -> player.setCard(null)
-        );
-        return room;
+        var room = roomDao.get(roomId).setStep(Step.HIDDEN);
+        room.getPlayers().forEach(player -> player.setCard(null));
+        return roomDao.put(room);
     }
 
-    public Room createRoom() {
-        return cacheDao.get(new Room()
-                .setId(RandomStringUtils.randomAlphabetic(30))
-                .setStep(Step.HIDDEN)
-        );
-    }
-
-    public Room addPlayer(String roomId, String playerId, String playerName) {
-        var room = getRoom(roomId);
+    public Room addPlayer(String sessionId, String roomId, String playerName) {
+        var room = roomDao.get(roomId);
         room.getPlayers().add(new Player()
                 .setName(playerName)
-                .setId(playerId)
+                .setId(sessionId)
+
         );
-        return room;
+        personDao.put(sessionId, room.getId());
+        return roomDao.put(room);
     }
 
-    public Room deletePlayer(String roomId, String playerId) {
-        var room = getRoom(roomId);
-        return room.setPlayers(room.getPlayers().stream().filter(player ->
-                !player.getId().equals(playerId)
-        ).collect(Collectors.toCollection(ArrayList::new)));
+    public Room deletePlayer(String sessionId, String roomId) {
+        var room = roomDao.get(roomId);
+        personDao.delete(sessionId);
+        return roomDao.put(room.setPlayers(room.getPlayers().stream().filter(player ->
+                !player.getId().equals(sessionId)
+        ).collect(Collectors.toCollection(ArrayList::new))));
     }
 
     public Room play(String roomId, String playerId, String cardValue) {
-        var room = getRoom(roomId)
-                .setStep(Step.HIDDEN);
+        var room = roomDao.get(roomId);
 
         room.getPlayers().stream().filter(
                         player ->
@@ -78,10 +68,11 @@ public class RoomService {
                             throw new RuntimeException("No player found");
                         }
                 );
-        var clone = gson.fromJson(gson.toJson(room), Room.class);
-        // - mask card
-        return clone.setPlayers(
-                clone.getPlayers()
+
+        var updatedRoom = roomDao.put(room);
+        // - mask players cards
+        return updatedRoom.setPlayers(
+                updatedRoom.getPlayers()
                         .stream()
                         .map(
                                 player ->

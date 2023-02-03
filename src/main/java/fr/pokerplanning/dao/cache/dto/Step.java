@@ -1,5 +1,7 @@
 package fr.pokerplanning.dao.cache.dto;
 
-public enum Step {
+import java.io.Serializable;
+
+public enum Step implements Serializable {
     HIDDEN, REVEAL
 }
