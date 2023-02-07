@@ -33,9 +33,11 @@ public class WebSocketEventListener {
         personDao.delete(event.getSessionId());
         var room = roomDao.get(roomId);
         // - Maj de la room
-        roomDao.put(room.setPlayers(room.getPlayers().stream().filter(player ->
+        roomDao.put(room.setPlayers(room.getPlayers().stream().filter(
+                player ->
                 !player.getId().equals(event.getSessionId())
         ).collect(Collectors.toCollection(ArrayList::new))));
+
         messagingTemplate.convertAndSend(PokerController.TOPIC_ROOM + roomId, room);
     }
 

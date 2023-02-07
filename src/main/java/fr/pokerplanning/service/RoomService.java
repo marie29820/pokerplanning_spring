@@ -46,14 +46,6 @@ public class RoomService {
         return roomDao.put(room);
     }
 
-    public Room deletePlayer(String sessionId, String roomId) {
-        var room = roomDao.get(roomId);
-        personDao.delete(sessionId);
-        return roomDao.put(room.setPlayers(room.getPlayers().stream().filter(player ->
-                !player.getId().equals(sessionId)
-        ).collect(Collectors.toCollection(ArrayList::new))));
-    }
-
     public Room play(String roomId, String playerId, String cardValue) {
         var room = roomDao.get(roomId);
 
