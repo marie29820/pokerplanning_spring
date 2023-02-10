@@ -34,6 +34,10 @@ public class RoomService {
         room.getPlayers().forEach(player -> player.setCard(null));
         return roomDao.put(room);
     }
+    public Room revealRoom(String roomId) {
+        var room = roomDao.get(roomId).setStep(Step.REVEAL);
+        return roomDao.put(room);
+    }
 
     public Room addPlayer(String sessionId, String roomId, String playerName) {
         var room = roomDao.get(roomId);
@@ -71,4 +75,5 @@ public class RoomService {
                                         StringUtils.isNotEmpty(player.getCard()) ? player.setCard("*") : player)
                         .toList());
     }
+
 }

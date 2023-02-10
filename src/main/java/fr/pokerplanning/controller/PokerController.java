@@ -55,7 +55,7 @@ public class PokerController {
 
     @MessageMapping("/{roomId}/reveal")
     public void revealGame(@Pattern(regexp = REGEX_ROOMID) @DestinationVariable String roomId) {
-        var room = roomService.getRoom(roomId).setStep(Step.REVEAL);
+        var room = roomService.revealRoom(roomId);
         messagingTemplate.convertAndSend(TOPIC_ROOM + roomId, room);
     }
 
